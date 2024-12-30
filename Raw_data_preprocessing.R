@@ -54,7 +54,7 @@ library(readr)
   peak_area_data <- peak_area_data %>%
     select(`Average Rt(min)`, `Average Mz`, (which(names(peak_area_data) == "MS/MS spectrum")+1):(ncol(peak_area_data)-2))%>%
     mutate(across(everything(), as.numeric))
-  
+
   #blank masking
   #remove features that are likely due to background ions and contaminants. intensity from samples 
   sample_id <- sample_meta %>%
@@ -69,8 +69,10 @@ library(readr)
       blank_mean = rowMeans(select(., all_of(blank_id$sample_name)), na.rm=TRUE)
   )
   #filter rows where sample mean is at least 3 times the blank mean
+  # filtered_peak_area <- peak_area_with_means %>%
+  #   filter(sample_mean >= 3* blank_mean)
   filtered_peak_area <- peak_area_with_means %>%
-    filter(sample_mean >= 3* blank_mean)
+    filter(sample_mean >= 0* blank_mean)
   metadata_cols <- filtered_peak_area %>%
     select(`Average Rt(min)`, `Average Mz`)
   
@@ -83,13 +85,15 @@ library(readr)
   filtered_peak_sample <- filtered_peak_sample %>%
     #detection frequency
     mutate(detection_frequency = rowSums(.!=0, na.rm=TRUE)/ncol(.)*100)%>%
-    #fitlered features with > 70%
-    filter(detection_frequency>70)%>%
+    #fitlered features with >= 70%
+    # filter(detection_frequency>=70)%>%
+    filter(detection_frequency>=0)%>%
     select(-detection_frequency)
   
   result_df <- bind_cols(metadata_cols[rownames(filtered_peak_sample), ], filtered_peak_sample)
   sample_meta_filtered <- metadata_cols[rownames(filtered_peak_sample),]
-  write.csv(file = "D:/UCSF_postdoc_topic/REVEAL_topics/REVEAL_200samples_analysis/Pos_AlignmentResults/filtered_peak_area_for_bc.csv", result_df)
+  # write.csv(file = "D:/UCSF_postdoc_topic/REVEAL_topics/REVEAL_200samples_analysis/Pos_AlignmentResults/filtered_peak_area_for_bc.csv", result_df)
+  write.csv(file = "D:/UCSF_postdoc_topic/REVEAL_topics/REVEAL_200samples_analysis/Pos_AlignmentResults/raw_peak_area_before_bc.csv", result_df)
   
   #impute column values, impute 0 value with row min
   
